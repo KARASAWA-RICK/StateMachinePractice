@@ -10,8 +10,6 @@ import {
   input,
   IPhysics2DContact,
   Sprite,
-  tween,
-  v3,
   Animation,
 } from "cc";
 
@@ -31,6 +29,9 @@ export class PlayerCtrl extends Component {
   idleAnimation: AnimationClip;
   attackAnimation: AnimationClip;
   deathAnimation: AnimationClip;
+
+  //数据保存与表现控制分离：state保存数据，setParams控制表现
+  state: string;
 
   protected onLoad(): void {
     this.init();
@@ -77,7 +78,7 @@ export class PlayerCtrl extends Component {
     this.fsm = this.addComponent(PlayerStateMachine);
     this.fsm.init();
 
-    this.idle();
+    this.setState(ENTITY_STATE_ENUM.IDLE);
   }
 
   //创建动画
@@ -111,22 +112,23 @@ export class PlayerCtrl extends Component {
       ENTITY_STATE_ENUM.DEATH;
   }
 
-  idle() {
-    console.log("idle");
-    this.fsm.setParams(ENTITY_STATE_ENUM.IDLE, true);
+  //数据保存与表现控制分离：state保存数据，setParams控制表现
+  setState(newState: string) {
+    this.state = newState;
+    this.fsm.setParams(newState, true);
   }
 
   attack() {
     console.log("attack");
-    if (this.fsm.currentState == ENTITY_STATE_ENUM.DEATH) {
+    if (this.state == ENTITY_STATE_ENUM.DEATH) {
       return;
     }
-    this.fsm.setParams(ENTITY_STATE_ENUM.ATTACK, true);
+    this.setState(ENTITY_STATE_ENUM.ATTACK);
   }
 
   death() {
     console.log("death");
-    this.fsm.setParams(ENTITY_STATE_ENUM.DEATH, true);
+    this.setState(ENTITY_STATE_ENUM.DEATH);
   }
 
   protected onDisable(): void {
