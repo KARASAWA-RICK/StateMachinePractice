@@ -22,8 +22,8 @@ import { ENTITYSTATE_ENUM } from "./Enum";
 import { PlayerStateMachine } from "./PlayerStateMachine";
 const { ccclass, property } = _decorator;
 
-@ccclass("PlayerMgr")
-export class PlayerMgr extends Component {
+@ccclass("PlayerCtrl")
+export class PlayerCtrl extends Component {
   animationComponent: Animation;
   boxCollider2D: BoxCollider2D;
   fsm: PlayerStateMachine;

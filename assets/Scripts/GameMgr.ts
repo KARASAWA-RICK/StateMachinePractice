@@ -12,7 +12,7 @@ import {
 import ResMgr from "./Manager/ResMgr";
 import { AssetType, Global } from "./Global";
 import { createAnimationClip, createNode } from "./Utils/Tools";
-import { PlayerMgr } from "./PlayerMgr";
+import { PlayerCtrl } from "./PlayerCtrl";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameMgr")
@@ -35,6 +35,6 @@ export class GameMgr extends Component {
   //创建角色
   generatePlayer() {
     const player = createNode("player", find("Canvas"));
-    player.addComponent(PlayerMgr);
+    player.addComponent(PlayerCtrl);
   }
 }
