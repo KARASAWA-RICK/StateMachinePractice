@@ -1,5 +1,5 @@
 import { _decorator, Animation, tween, v3 } from "cc";
-import { ENTITYSTATE_ENUM } from "./Enum";
+import { ENTITY_STATE_ENUM } from "./Enum";
 import { State } from "./Base/State";
 import { StateMachine } from "./Base/StateMachine";
 const { ccclass } = _decorator;
@@ -24,23 +24,23 @@ export class PlayerStateMachine extends StateMachine {
 
   //注册参数
   initParamsMap() {
-    this.paramsMap.set(ENTITYSTATE_ENUM.IDLE, false);
-    this.paramsMap.set(ENTITYSTATE_ENUM.ATTACK, false);
-    this.paramsMap.set(ENTITYSTATE_ENUM.DEATH, false);
+    this.paramsMap.set(ENTITY_STATE_ENUM.IDLE, false);
+    this.paramsMap.set(ENTITY_STATE_ENUM.ATTACK, false);
+    this.paramsMap.set(ENTITY_STATE_ENUM.DEATH, false);
   }
   //注册状态
   initStatesMap() {
     this.statesMap.set(
-      ENTITYSTATE_ENUM.IDLE,
-      new State(this, undefined, ENTITYSTATE_ENUM.IDLE, 0.3)
+      ENTITY_STATE_ENUM.IDLE,
+      new State(this, undefined, ENTITY_STATE_ENUM.IDLE, 0.3)
     );
     this.statesMap.set(
-      ENTITYSTATE_ENUM.ATTACK,
-      new State(this, this.attackCb.bind(this), ENTITYSTATE_ENUM.ATTACK, 0.3)
+      ENTITY_STATE_ENUM.ATTACK,
+      new State(this, this.attackCb.bind(this), ENTITY_STATE_ENUM.ATTACK, 0.3)
     );
     this.statesMap.set(
-      ENTITYSTATE_ENUM.DEATH,
-      new State(this, undefined, ENTITYSTATE_ENUM.DEATH)
+      ENTITY_STATE_ENUM.DEATH,
+      new State(this, undefined, ENTITY_STATE_ENUM.DEATH)
     );
   }
   attackCb() {
@@ -55,8 +55,8 @@ export class PlayerStateMachine extends StateMachine {
   initAnimationEvent() {
     //动画播放结束后切换到IDLE
     this.animationComponent.on(Animation.EventType.FINISHED, () => {
-      if (this.currentState === ENTITYSTATE_ENUM.ATTACK) {
-        this.setParams(ENTITYSTATE_ENUM.IDLE, true);
+      if (this.currentState === ENTITY_STATE_ENUM.ATTACK) {
+        this.setParams(ENTITY_STATE_ENUM.IDLE, true);
       }
     });
   }
@@ -65,20 +65,20 @@ export class PlayerStateMachine extends StateMachine {
   run() {
     console.log("状态机运行");
     switch (this.currentState) {
-      case ENTITYSTATE_ENUM.IDLE:
-      case ENTITYSTATE_ENUM.ATTACK:
-      case ENTITYSTATE_ENUM.DEATH:
-        if (this.paramsMap.get(ENTITYSTATE_ENUM.IDLE)) {
+      case ENTITY_STATE_ENUM.IDLE:
+      case ENTITY_STATE_ENUM.ATTACK:
+      case ENTITY_STATE_ENUM.DEATH:
+        if (this.paramsMap.get(ENTITY_STATE_ENUM.IDLE)) {
           console.log("IDLE参数是true");
-          this.stateChange(ENTITYSTATE_ENUM.IDLE);
-        } else if (this.paramsMap.get(ENTITYSTATE_ENUM.ATTACK)) {
-          this.stateChange(ENTITYSTATE_ENUM.ATTACK);
-        } else if (this.paramsMap.get(ENTITYSTATE_ENUM.DEATH)) {
-          this.stateChange(ENTITYSTATE_ENUM.DEATH);
+          this.stateChange(ENTITY_STATE_ENUM.IDLE);
+        } else if (this.paramsMap.get(ENTITY_STATE_ENUM.ATTACK)) {
+          this.stateChange(ENTITY_STATE_ENUM.ATTACK);
+        } else if (this.paramsMap.get(ENTITY_STATE_ENUM.DEATH)) {
+          this.stateChange(ENTITY_STATE_ENUM.DEATH);
         }
         break;
       default:
-        this.stateChange(ENTITYSTATE_ENUM.IDLE);
+        this.stateChange(ENTITY_STATE_ENUM.IDLE);
     }
   }
 }
