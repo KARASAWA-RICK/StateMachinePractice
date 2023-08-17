@@ -13,6 +13,7 @@ import ResMgr from "./Manager/ResMgr";
 import { AssetType, Global } from "./Global";
 import { createAnimationClip, createNode } from "./Utils/Tools";
 import { PlayerCtrl } from "./PlayerCtrl";
+import { jkCtrl } from "./jkCtrl";
 const { ccclass, property } = _decorator;
 
 @ccclass("GameMgr")
@@ -23,6 +24,7 @@ export class GameMgr extends Component {
 
   async init() {
     await this.loadRes();
+    //this.generateJK();
     this.generatePlayer();
   }
 
@@ -36,5 +38,9 @@ export class GameMgr extends Component {
   generatePlayer() {
     const player = createNode("player", find("Canvas"));
     player.addComponent(PlayerCtrl);
+  }
+  generateJK() {
+    const player = createNode("jk", find("Canvas"));
+    player.addComponent(jkCtrl);
   }
 }
