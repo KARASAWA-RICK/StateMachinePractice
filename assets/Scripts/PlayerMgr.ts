@@ -1,7 +1,6 @@
 import {
   _decorator,
   AnimationClip,
-  AnimationComponent,
   BoxCollider2D,
   Collider2D,
   Component,
@@ -13,10 +12,11 @@ import {
   Sprite,
   tween,
   v3,
+  Animation,
 } from "cc";
-import ResMgr from "./Manager/ResMgr";
+
 import { EventMgr } from "./Manager/EventMgr";
-import { AssetType, Global } from "./Global";
+
 import { createAnimationClip } from "./Utils/Tools";
 import { ENTITYSTATE_ENUM } from "./Enum";
 import { PlayerStateMachine } from "./PlayerStateMachine";
@@ -24,8 +24,10 @@ const { ccclass, property } = _decorator;
 
 @ccclass("PlayerMgr")
 export class PlayerMgr extends Component {
-  animationComponent: AnimationComponent;
+  animationComponent: Animation;
   boxCollider2D: BoxCollider2D;
+  fsm: PlayerStateMachine;
+
   idleAnimation: AnimationClip;
   attackAnimation: AnimationClip;
   deathAnimation: AnimationClip;
@@ -59,15 +61,22 @@ export class PlayerMgr extends Component {
 
   init() {
     console.log("player初始化");
-    //添加组件
+
+    //动画组件
     this.addComponent(Sprite).sizeMode = Sprite.SizeMode.RAW;
-    this.animationComponent = this.addComponent(AnimationComponent);
+    this.animationComponent = this.addComponent(Animation);
+    //创建动画
+    this.createAnimationClips();
+
+    //碰撞组件
     this.boxCollider2D = this.addComponent(BoxCollider2D);
     this.boxCollider2D.size.width = 100;
     this.boxCollider2D.size.height = 100;
-    //this.addComponent(PlayerStateMachine);
 
-    this.createAnimationClips();
+    //状态机组件
+    this.fsm = this.addComponent(PlayerStateMachine);
+    this.fsm.init();
+
     this.idle();
   }
 
@@ -77,17 +86,20 @@ export class PlayerMgr extends Component {
     this.idleAnimation = createAnimationClip(
       "idle",
       0.5,
-      AnimationClip.WrapMode.Loop
+      AnimationClip.WrapMode.Loop,
+      ENTITYSTATE_ENUM.IDLE
     );
     this.attackAnimation = createAnimationClip(
       "attack",
       1,
-      AnimationClip.WrapMode.Normal
+      AnimationClip.WrapMode.Normal,
+      ENTITYSTATE_ENUM.ATTACK
     );
     this.deathAnimation = createAnimationClip(
       "death",
       1.75,
-      AnimationClip.WrapMode.Normal
+      AnimationClip.WrapMode.Normal,
+      ENTITYSTATE_ENUM.DEATH
     );
     //添加
     this.animationComponent.addClip(this.idleAnimation, ENTITYSTATE_ENUM.IDLE);
@@ -95,34 +107,26 @@ export class PlayerMgr extends Component {
       this.attackAnimation,
       ENTITYSTATE_ENUM.ATTACK
     );
-    this.animationComponent.addClip(
-      this.deathAnimation,
-      ENTITYSTATE_ENUM.DEATH
-    );
+    this.animationComponent.addClip(this.deathAnimation),
+      ENTITYSTATE_ENUM.DEATH;
   }
 
   idle() {
     console.log("idle");
-    //播放动画
-    this.animationComponent.play(ENTITYSTATE_ENUM.IDLE);
+    this.fsm.setParams(ENTITYSTATE_ENUM.IDLE, true);
   }
 
   attack() {
     console.log("attack");
-    //播放动画
-    this.animationComponent.crossFade(ENTITYSTATE_ENUM.ATTACK, 0.3);
-    //位移
-    tween(this.node)
-      .to(1, {
-        position: this.node.getPosition().add(v3(-50, 0, 0)),
-      })
-      .start();
+    if (this.fsm.currentState == ENTITYSTATE_ENUM.DEATH) {
+      return;
+    }
+    this.fsm.setParams(ENTITYSTATE_ENUM.ATTACK, true);
   }
 
   death() {
     console.log("death");
-    //播放动画
-    this.animationComponent.crossFade(ENTITYSTATE_ENUM.DEATH, 0.3);
+    this.fsm.setParams(ENTITYSTATE_ENUM.DEATH, true);
   }
 
   protected onDisable(): void {

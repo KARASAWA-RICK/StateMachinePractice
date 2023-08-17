@@ -75,7 +75,8 @@ export const createNode = (name: string = "", parent: Node) => {
 export const createAnimationClip = (
   Atlas: string,
   duration: number,
-  wrapMode: AnimationClip.WrapMode
+  wrapMode: AnimationClip.WrapMode,
+  name?: string
 ) => {
   //获取序列帧数组
   const spriteAtlas: SpriteAtlas = ResMgr.ins.getAtlas(Atlas);
@@ -107,6 +108,9 @@ export const createAnimationClip = (
 
   //设置循环模式
   animationClip.wrapMode = wrapMode;
+
+  //设置名称
+  animationClip.name = name;
 
   console.log(Atlas + "动画创建成功");
 

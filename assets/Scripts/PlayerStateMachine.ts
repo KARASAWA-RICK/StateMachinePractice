@@ -1,92 +1,84 @@
-import { AnimationClip, Component, _decorator } from "cc";
+import { _decorator, Animation, tween, v3 } from "cc";
 import { ENTITYSTATE_ENUM } from "./Enum";
 import { State } from "./Base/State";
-import { PlayerMgr } from "./PlayerMgr";
+import { StateMachine } from "./Base/StateMachine";
 const { ccclass } = _decorator;
 
 @ccclass("PlayerStateMachine")
-export class PlayerStateMachine extends Component {
-  //获取动画
-  idleAnimation: AnimationClip =
-    this.node.getComponent(PlayerMgr).idleAnimation;
-  attackAnimation: AnimationClip =
-    this.node.getComponent(PlayerMgr).attackAnimation;
-  deathAnimation: AnimationClip =
-    this.node.getComponent(PlayerMgr).deathAnimation;
-
-  //状态判断参数Map
-  paramsMap: Map<ENTITYSTATE_ENUM, boolean | number> = new Map();
-  //状态Map
-  statesMap: Map<ENTITYSTATE_ENUM, State> = new Map();
-
-  //当前状态
-  private _currentState: ENTITYSTATE_ENUM;
-  //获取当前状态
-  get currentState() {
-    return this._currentState;
-  }
-  //改变当前状态
-  set currentState(newState: ENTITYSTATE_ENUM) {
-    this._currentState = newState;
-  }
+export class PlayerStateMachine extends StateMachine {
+  //动画组件
+  animationComponent: Animation;
 
   //初始化状态机
   init() {
+    console.log("fsm初始化");
+
+    //获取动画组件
+    this.animationComponent = this.node.getComponent(Animation);
+
+    //初始化状态机Map
     this.initParamsMap();
     this.initStatesMap();
+    this.initAnimationEvent();
   }
 
-  //注册状态判断参数
+  //注册参数
   initParamsMap() {
     this.paramsMap.set(ENTITYSTATE_ENUM.IDLE, false);
     this.paramsMap.set(ENTITYSTATE_ENUM.ATTACK, false);
     this.paramsMap.set(ENTITYSTATE_ENUM.DEATH, false);
   }
-  //获取状态判断参数
-  getParams(stateName: ENTITYSTATE_ENUM) {
-    if (this.paramsMap.has(stateName)) {
-      this.paramsMap.get(stateName);
-    }
-  }
-  //改变状态判断参数
-  setParams(stateName: ENTITYSTATE_ENUM, newParamValue: number | boolean) {
-    if (this.paramsMap.has(stateName)) {
-      this.paramsMap.set(stateName, newParamValue);
-      this.stateChange();
-    }
-  }
-
   //注册状态
   initStatesMap() {
     this.statesMap.set(
       ENTITYSTATE_ENUM.IDLE,
-      new State(this, this.idleAnimation)
+      new State(this, undefined, ENTITYSTATE_ENUM.IDLE, 0.3)
     );
     this.statesMap.set(
-      ENTITYSTATE_ENUM.IDLE,
-      new State(this, this.attackAnimation)
+      ENTITYSTATE_ENUM.ATTACK,
+      new State(this, this.attackCb.bind(this), ENTITYSTATE_ENUM.ATTACK, 0.3)
     );
     this.statesMap.set(
-      ENTITYSTATE_ENUM.IDLE,
-      new State(this, this.deathAnimation)
+      ENTITYSTATE_ENUM.DEATH,
+      new State(this, undefined, ENTITYSTATE_ENUM.DEATH)
     );
   }
-  //根据状态判断参数切换状态
-  stateChange() {
+  attackCb() {
+    //位移
+    tween(this.node)
+      .to(1, {
+        position: this.node.getPosition().add(v3(-50, 0, 0)),
+      })
+      .start();
+  }
+  //绑定动画事件
+  initAnimationEvent() {
+    //动画播放结束后切换到IDLE
+    this.animationComponent.on(Animation.EventType.FINISHED, () => {
+      if (this.currentState === ENTITYSTATE_ENUM.ATTACK) {
+        this.setParams(ENTITYSTATE_ENUM.IDLE, true);
+      }
+    });
+  }
+
+  //状态机运行
+  run() {
+    console.log("状态机运行");
     switch (this.currentState) {
       case ENTITYSTATE_ENUM.IDLE:
       case ENTITYSTATE_ENUM.ATTACK:
       case ENTITYSTATE_ENUM.DEATH:
         if (this.paramsMap.get(ENTITYSTATE_ENUM.IDLE)) {
-          this.currentState = ENTITYSTATE_ENUM.IDLE;
+          console.log("IDLE参数是true");
+          this.stateChange(ENTITYSTATE_ENUM.IDLE);
         } else if (this.paramsMap.get(ENTITYSTATE_ENUM.ATTACK)) {
-          this.currentState = ENTITYSTATE_ENUM.ATTACK;
+          this.stateChange(ENTITYSTATE_ENUM.ATTACK);
         } else if (this.paramsMap.get(ENTITYSTATE_ENUM.DEATH)) {
-          this.currentState = ENTITYSTATE_ENUM.DEATH;
+          this.stateChange(ENTITYSTATE_ENUM.DEATH);
         }
         break;
       default:
-        this.currentState = ENTITYSTATE_ENUM.IDLE;
+        this.stateChange(ENTITYSTATE_ENUM.IDLE);
     }
   }
 }
